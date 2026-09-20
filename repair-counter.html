@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="現場カウンター">
+  <title>リペア現場カウンター</title>
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#d1d5db;
+      --accent:#111827;
+      --accentText:#ffffff;
+      --danger:#b91c1c;
+      --soft:#f9fafb;
+      --ok:#166534;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-tap-highlight-color:transparent;
+    }
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .app{max-width:720px;margin:0 auto;padding:16px 14px 42px}
+    h1{font-size:22px;margin:0}
+    .sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      margin-top:14px;
+    }
+    .topline,.row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .label{font-size:13px;color:var(--muted);font-weight:600}
+    .room-display{
+      margin-top:8px;
+      min-height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      padding:8px 14px;
+      border:2px solid var(--line);
+      border-radius:14px;
+      background:var(--soft);
+      font-size:34px;
+      font-weight:800;
+      letter-spacing:.04em;
+    }
+    .suffix{font-size:18px;margin-left:4px;color:var(--muted);font-weight:700}
+    .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .key{
+      min-height:54px;border-radius:14px;border:1px solid var(--line);
+      background:#fff;font-weight:800;font-size:20px;color:var(--text)
+    }
+    .key.alt{font-size:16px;font-weight:700}
+    .primary{
+      width:100%;min-height:52px;margin-top:10px;border:none;border-radius:14px;
+      background:var(--accent);color:var(--accentText);font-weight:800
+    }
+    .ghost{
+      min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;
+      padding:0 13px;color:var(--text);font-weight:700
+    }
+    .danger{color:var(--danger)}
+    .active-room{font-size:26px;font-weight:900}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}
+    .cat{
+      border:1px solid var(--line);background:#fff;border-radius:16px;
+      min-height:74px;padding:10px 12px;text-align:left;color:var(--text)
+    }
+    .cat:active{transform:scale(.985)}
+    .cat .name{font-weight:800;font-size:17px}
+    .cat .count{margin-top:5px;font-size:13px;color:var(--muted)}
+    .cat .plus{float:right;font-size:22px;font-weight:900}
+    .summary{margin-top:12px;padding:11px 12px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.7}
+    .records{margin-top:8px}
+    .record{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+      padding:11px 0;border-bottom:1px solid #e5e7eb
+    }
+    .record:last-child{border-bottom:0}
+    .recordText{line-height:1.6;font-size:15px;flex:1;min-width:0}
+    .tiny{
+      min-height:38px;border:1px solid var(--line);border-radius:10px;background:#fff;
+      padding:0 10px;font-size:13px;font-weight:700
+    }
+    textarea{
+      width:100%;margin-top:10px;min-height:160px;resize:vertical;border:1px solid var(--line);
+      border-radius:13px;padding:12px;background:#fff;color:var(--text);line-height:1.65
+    }
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+    .action{
+      min-height:48px;border-radius:13px;border:1px solid var(--line);
+      background:#fff;font-weight:800;color:var(--text)
+    }
+    .action.main{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .settings-row{display:flex;gap:8px;margin-top:10px}
+    .settings-row input{
+      min-width:0;flex:1;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:0 12px
+    }
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
+      padding:7px 10px;background:#fff;font-size:14px
+    }
+    .chip button{border:0;background:transparent;font-weight:900;color:var(--danger);padding:2px 4px}
+    .status{min-height:20px;margin-top:7px;color:var(--ok);font-size:13px}
+    .empty{color:var(--muted);font-size:14px;padding:6px 0}
+    .help{font-size:13px;color:var(--muted);line-height:1.65}
+    .footer{margin-top:14px;text-align:center;font-size:12px;color:var(--muted)}
+    @media (min-width:620px){
+      .grid{grid-template-columns:repeat(3,1fr)}
+      .room-wrap{display:grid;grid-template-columns:290px 1fr;gap:14px}
+      .room-wrap .card{margin-top:14px}
+    }
+  </style>
+</head>
+<body>
+<main class="app">
+  <div>
+    <h1>リペア現場カウンター</h1>
+    <div class="sub">号室 → 傷の種類をタップ → 最後にそのまま共有</div>
+  </div>
+
+  <div class="room-wrap">
+    <section class="card">
+      <div class="label">① 号室を入力</div>
+      <div id="roomDisplay" class="room-display">—</div>
+
+      <div class="keypad">
+        <button class="key" data-key="1">1</button>
+        <button class="key" data-key="2">2</button>
+        <button class="key" data-key="3">3</button>
+        <button class="key" data-key="4">4</button>
+        <button class="key" data-key="5">5</button>
+        <button class="key" data-key="6">6</button>
+        <button class="key" data-key="7">7</button>
+        <button class="key" data-key="8">8</button>
+        <button class="key" data-key="9">9</button>
+        <button id="clearRoom" class="key alt">C</button>
+        <button class="key" data-key="0">0</button>
+        <button id="backRoom" class="key alt">⌫</button>
+      </div>
+
+      <button id="selectRoom" class="primary">この号室を選択</button>
+      <div id="roomStatus" class="status"></div>
+    </section>
+
+    <section class="card">
+      <div class="topline">
+        <div>
+          <div class="label">② 現在の部屋</div>
+          <div id="activeRoom" class="active-room">未選択</div>
+        </div>
+        <button id="undo" class="ghost">1つ戻す</button>
+      </div>
+
+      <div id="categoryGrid" class="grid"></div>
+      <div id="currentSummary" class="summary">先に号室を選択してください。</div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="topline">
+      <div>
+        <div class="label">③ 記録済み</div>
+        <strong id="recordCount">0部屋</strong>
+      </div>
+      <button id="clearAll" class="ghost danger">全消去</button>
+    </div>
+    <div id="records" class="records"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">④ 報告用テキスト</div>
+    <textarea id="report" readonly placeholder="記録すると自動で作成されます。"></textarea>
+    <div class="actions">
+      <button id="copyBtn" class="action">コピー</button>
+      <button id="shareBtn" class="action main">共有</button>
+    </div>
+    <div id="shareStatus" class="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">項目をカスタマイズ</div>
+    <div class="settings-row">
+      <input id="newCategory" maxlength="12" placeholder="例：洗面台">
+      <button id="addCategory" class="ghost">追加</button>
+    </div>
+    <div id="chips" class="chips"></div>
+    <p class="help">初期設定：木部・扉・浴槽・床・その他。追加・削除した内容も自動保存されます。</p>
+  </section>
+
+  <section class="card">
+    <div class="label">使い方</div>
+    <p class="help">
+      101 と入力して「この号室を選択」→ 木部を1回タップ。<br>
+      102 と入力 → 木部を2回タップ。<br>
+      すべて終わったら「共有」でLINEなどへ送れます。<br>
+      入力内容はこの端末に自動保存され、画面を閉じても残ります。
+    </p>
+  </section>
+
+  <div class="footer">データは端末内だけに保存されます。</div>
+</main>
+
+<script>
+(() => {
+  const STORAGE_KEY = "repair-counter-v1";
+  const DEFAULT_CATEGORIES = ["木部","扉","浴槽","床","その他"];
+
+  let state = loadState();
+  let roomInput = "";
+  let activeRoom = state.activeRoom || "";
+  let history = [];
+
+  const $ = (id) => document.getElementById(id);
+  const roomDisplay = $("roomDisplay");
+  const activeRoomEl = $("activeRoom");
+  const categoryGrid = $("categoryGrid");
+  const currentSummary = $("currentSummary");
+  const recordsEl = $("records");
+  const reportEl = $("report");
+  const recordCountEl = $("recordCount");
+  const roomStatus = $("roomStatus");
+  const shareStatus = $("shareStatus");
+  const chips = $("chips");
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return {categories:[...DEFAULT_CATEGORIES], rooms:{}, activeRoom:""};
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed.categories) || typeof parsed.rooms !== "object") throw new Error();
+      return {
+        categories: parsed.categories.length ? parsed.categories : [...DEFAULT_CATEGORIES],
+        rooms: parsed.rooms || {},
+        activeRoom: parsed.activeRoom || ""
+      };
+    }catch{
+      return {categories:[...DEFAULT_CATEGORIES], rooms:{}, activeRoom:""};
+    }
+  }
+
+  function saveState(){
+    state.activeRoom = activeRoom;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function sanitizeRoom(v){
+    return String(v).replace(/\D/g,"").slice(0,6).replace(/^0+(?=\d)/,"");
+  }
+
+  function ensureRoom(room){
+    if(!state.rooms[room]) state.rooms[room] = {};
+    for(const cat of state.categories){
+      if(typeof state.rooms[room][cat] !== "number") state.rooms[room][cat] = 0;
+    }
+  }
+
+  function hasCounts(room){
+    if(!state.rooms[room]) return false;
+    return state.categories.some(c => (state.rooms[room][c] || 0) > 0);
+  }
+
+  function sortedRooms(){
+    return Object.keys(state.rooms)
+      .filter(hasCounts)
+      .sort((a,b) => Number(a) - Number(b));
+  }
+
+  function roomLine(room){
+    const parts = state.categories
+      .filter(c => (state.rooms[room][c] || 0) > 0)
+      .map(c => `${c}×${state.rooms[room][c]}`);
+    return `${room}号室 ${parts.join("、")}`;
+  }
+
+  function renderRoomInput(){
+    roomDisplay.innerHTML = roomInput
+      ? `${roomInput}<span class="suffix">号室</span>`
+      : "—";
+  }
+
+  function renderCategories(){
+    categoryGrid.innerHTML = "";
+    for(const cat of state.categories){
+      const count = activeRoom && state.rooms[activeRoom] ? (state.rooms[activeRoom][cat] || 0) : 0;
+      const btn = document.createElement("button");
+      btn.className = "cat";
+      btn.disabled = !activeRoom;
+      btn.style.opacity = activeRoom ? "1" : ".48";
+      btn.innerHTML = `<span class="plus">＋</span><div class="name">${escapeHTML(cat)}</div><div class="count">現在 ${count}</div>`;
+      btn.addEventListener("click", () => increment(cat));
+      categoryGrid.appendChild(btn);
+    }
+  }
+
+  function renderCurrent(){
+    activeRoomEl.textContent = activeRoom ? `${activeRoom}号室` : "未選択";
+    if(!activeRoom){
+      currentSummary.textContent = "先に号室を選択してください。";
+      return;
+    }
+    ensureRoom(activeRoom);
+    const parts = state.categories
+      .filter(c => (state.rooms[activeRoom][c] || 0) > 0)
+      .map(c => `${c}×${state.rooms[activeRoom][c]}`);
+    currentSummary.textContent = parts.length
+      ? `${activeRoom}号室　${parts.join("　")}`
+      : "まだ傷は登録されていません。";
+  }
+
+  function renderRecords(){
+    const rooms = sortedRooms();
+    recordCountEl.textContent = `${rooms.length}部屋`;
+    recordsEl.innerHTML = "";
+
+    if(!rooms.length){
+      recordsEl.innerHTML = `<div class="empty">まだ記録はありません。</div>`;
+    }else{
+      for(const room of rooms){
+        const row = document.createElement("div");
+        row.className = "record";
+
+        const text = document.createElement("div");
+        text.className = "recordText";
+        text.textContent = roomLine(room);
+
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.gap = "6px";
+
+        const edit = document.createElement("button");
+        edit.className = "tiny";
+        edit.textContent = "開く";
+        edit.addEventListener("click", () => {
+          activeRoom = room;
+          roomInput = "";
+          roomStatus.textContent = `${room}号室を開きました。`;
+          saveState();
+          renderAll();
+          window.scrollTo({top:0, behavior:"smooth"});
+        });
+
+        const del = document.createElement("button");
+        del.className = "tiny danger";
+        del.textContent = "削除";
+        del.addEventListener("click", () => {
+          if(confirm(`${room}号室の記録を削除しますか？`)){
+            delete state.rooms[room];
+            history = history.filter(h => h.room !== room);
+            if(activeRoom === room) activeRoom = "";
+            saveState();
+            renderAll();
+          }
+        });
+
+        actions.append(edit, del);
+        row.append(text, actions);
+        recordsEl.appendChild(row);
+      }
+    }
+
+    reportEl.value = rooms.map(roomLine).join("\n");
+  }
+
+  function renderChips(){
+    chips.innerHTML = "";
+    for(const cat of state.categories){
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      const span = document.createElement("span");
+      span.textContent = cat;
+      const remove = document.createElement("button");
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", `${cat}を削除`);
+      remove.addEventListener("click", () => removeCategory(cat));
+      chip.append(span, remove);
+      chips.appendChild(chip);
+    }
+  }
+
+  function renderAll(){
+    renderRoomInput();
+    renderCurrent();
+    renderCategories();
+    renderRecords();
+    renderChips();
+  }
+
+  function increment(cat){
+    if(!activeRoom) return;
+    ensureRoom(activeRoom);
+    state.rooms[activeRoom][cat] = (state.rooms[activeRoom][cat] || 0) + 1;
+    history.push({room:activeRoom, cat});
+    saveState();
+    renderAll();
+  }
+
+  function undoLast(){
+    const last = history.pop();
+    if(!last){
+      roomStatus.textContent = "この起動中に戻せる操作はありません。";
+      return;
+    }
+    const room = state.rooms[last.room];
+    if(room && (room[last.cat] || 0) > 0){
+      room[last.cat]--;
+      activeRoom = last.room;
+      saveState();
+      roomStatus.textContent = `${last.room}号室の「${last.cat}」を1つ戻しました。`;
+      renderAll();
+    }
+  }
+
+  function addCategory(){
+    const input = $("newCategory");
+    const name = input.value.trim();
+    if(!name) return;
+    if(state.categories.includes(name)){
+      shareStatus.textContent = "同じ項目がすでにあります。";
+      return;
+    }
+    if(state.categories.length >= 16){
+      shareStatus.textContent = "項目は16個までです。";
+      return;
+    }
+    state.categories.push(name);
+    for(const room of Object.keys(state.rooms)) state.rooms[room][name] = 0;
+    input.value = "";
+    saveState();
+    renderAll();
+  }
+
+  function removeCategory(cat){
+    if(state.categories.length <= 1){
+      shareStatus.textContent = "項目は最低1つ必要です。";
+      return;
+    }
+    const used = Object.values(state.rooms).some(room => (room[cat] || 0) > 0);
+    if(used && !confirm(`「${cat}」には記録があります。項目ごと削除しますか？`)) return;
+
+    state.categories = state.categories.filter(c => c !== cat);
+    for(const room of Object.values(state.rooms)) delete room[cat];
+    history = history.filter(h => h.cat !== cat);
+    saveState();
+    renderAll();
+  }
+
+  function escapeHTML(str){
+    return String(str).replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  async function copyReport(){
+    const text = reportEl.value.trim();
+    if(!text){
+      shareStatus.textContent = "まだ記録がありません。";
+      return;
+    }
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(text);
+      }else{
+        reportEl.focus();
+        reportEl.select();
+        document.execCommand("copy");
+        window.getSelection()?.removeAllRanges();
+      }
+      shareStatus.textContent = "コピーしました。";
+    }catch{
+      shareStatus.textContent = "コピーできませんでした。テキストを長押ししてコピーしてください。";
+    }
+  }
+
+  async function shareReport(){
+    const text = reportEl.value.trim();
+    if(!text){
+      shareStatus.textContent = "まだ記録がありません。";
+      return;
+    }
+    if(navigator.share){
+      try{
+        await navigator.share({title:"リペア現場 傷確認", text});
+        shareStatus.textContent = "共有しました。";
+      }catch(err){
+        if(err && err.name !== "AbortError") shareStatus.textContent = "共有できませんでした。";
+      }
+    }else{
+      await copyReport();
+    }
+  }
+
+  document.querySelectorAll("[data-key]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if(roomInput.length < 6) roomInput += btn.dataset.key;
+      roomInput = sanitizeRoom(roomInput);
+      roomStatus.textContent = "";
+      renderRoomInput();
+    });
+  });
+
+  $("clearRoom").addEventListener("click", () => {
+    roomInput = "";
+    roomStatus.textContent = "";
+    renderRoomInput();
+  });
+
+  $("backRoom").addEventListener("click", () => {
+    roomInput = roomInput.slice(0,-1);
+    renderRoomInput();
+  });
+
+  $("selectRoom").addEventListener("click", () => {
+    const room = sanitizeRoom(roomInput);
+    if(!room){
+      roomStatus.textContent = "号室を入力してください。";
+      return;
+    }
+    activeRoom = room;
+    ensureRoom(activeRoom);
+    roomInput = "";
+    roomStatus.textContent = `${activeRoom}号室を選択しました。`;
+    saveState();
+    renderAll();
+  });
+
+  $("undo").addEventListener("click", undoLast);
+  $("copyBtn").addEventListener("click", copyReport);
+  $("shareBtn").addEventListener("click", shareReport);
+  $("addCategory").addEventListener("click", addCategory);
+  $("newCategory").addEventListener("keydown", e => {
+    if(e.key === "Enter") addCategory();
+  });
+
+  $("clearAll").addEventListener("click", () => {
+    if(!sortedRooms().length) return;
+    if(confirm("すべての部屋の記録を消去しますか？")){
+      state.rooms = {};
+      history = [];
+      activeRoom = "";
+      roomInput = "";
+      saveState();
+      renderAll();
+      roomStatus.textContent = "全記録を消去しました。";
+    }
+  });
+
+  if(activeRoom) ensureRoom(activeRoom);
+  renderAll();
+})();
+</script>
+</body>
+</html>
